@@ -32,6 +32,7 @@ $(function() {
 
 			listView.init();
 			mainView.init();
+			adminView.init();
 		},
 		getAll: function() {
 			return model.getAll();
@@ -44,28 +45,76 @@ $(function() {
 		},
 		loadCurrent: function() {
 			mainView.render(octopus.getCurrent());
+			adminView.render();
 		},
 		incrementCounter: function() {
 			model.currentCat.clicks++;
+			adminView.render();
+			mainView.render(this.getCurrent());
+		},
+		adminHideShow: function() {
+			adminView.$admin.toggle();
+		},
+		adminSave: function(name, clicks, image) {
+			model.currentCat.name = name;
+			model.currentCat.clicks = clicks;
+			model.currentCat.image = image;
+
+			adminView.render();
+			listView.init();
+			mainView.render(octopus.getCurrent());
+		}
+	};
+
+	var adminView = {
+		init: function() {
+			this.$admin = $('#admin-mode');
+
+			$('#btn-admin').click(function(e) {
+				adminView.render();
+				octopus.adminHideShow();
+				e.preventDefault();
+			});
+
+			$('#btn-reset').click(function(e) {
+				adminView.render();
+				octopus.adminHideShow();
+				e.preventDefault();
+			});
+
+			$('#btn-save').click(function(e) {
+				var name = $('#name').val();
+				var clicks = $('#clicks').val();
+				var image = $('#pic').val();
+				octopus.adminSave(name, clicks, image);
+				octopus.adminHideShow();
+				e.preventDefault();;
+			});
+
+			octopus.adminHideShow();
+			adminView.render();
+		},
+		render: function() {
+			$('#name').val(octopus.getCurrent().name);
+			$('#clicks').val(octopus.getCurrent().clicks);
+			$('#pic').val(octopus.getCurrent().image);
 		}
 	};
 
 	var listView = {
 		init: function() {
-			this.cats = octopus.getAll();
+			$('#cat-list').html('');
 			listView.render();
-			this.cats.forEach(function(cat) {
-				$('#' + cat.name).click(function() {	
-
+			octopus.getAll().forEach(function(cat) {
+				$('#' + cat.name).click(function(e) {
 					octopus.setCurrent(cat);
 					octopus.loadCurrent();
-	
-					return false;
+					e.preventDefault();;
 				});
 			});
 		},
 		render: function() {
-			this.cats.forEach(function(cat) {
+			octopus.getAll().forEach(function(cat) {
 				$('#cat-list').append('<li><button id="' + cat.name + '">' + cat.name + '</button></li>');
 			});
 		}
@@ -79,7 +128,6 @@ $(function() {
 
 			this.$catPics.click(function() {
 				octopus.incrementCounter();
-				mainView.render(octopus.getCurrent());
 				return false;
 			});
 
